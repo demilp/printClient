@@ -3,10 +3,7 @@ package
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.events.ProgressEvent;
-	import flash.events.ServerSocketConnectEvent;
 	import flash.filters.ColorMatrixFilter;
-	import flash.net.ServerSocket;
 	import flash.net.Socket;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
@@ -15,7 +12,6 @@ package
 	import flash.printing.PrintJobOptions;
 	import flash.text.TextField;
 	
-	import fl.managers.style_manager;
 	import fl.motion.AdjustColor;
 	
 	public class PrintClient extends Sprite
@@ -57,7 +53,7 @@ package
 		private var buffer:String = "";
 		private function onConnect() : void
 		{
-			socket.sendString("{\"type\":\"register\", \"data\":\"printer\", \"tag\":\"tool\"};");
+			socket.sendString("{\"type\":\"register\", \"data\":\"printer"+Globals.id+"\", \"tag\":\"tool\"};");
 		}
 		private var clients : Vector.<Socket>;
 		public function onData(command : String) : void
@@ -100,14 +96,24 @@ package
 		{
 			var s : Sprite = new Sprite();
 			s.addChild(Bitmap(obj.content));
-			for (var i:int = 0; i < copies; i++) 
+			var whole : int = (int)(copies / Globals.CopiasSeguidas);
+			var rest : int = copies % Globals.CopiasSeguidas;
+			if(whole > 0)
 			{
-				print(s);
-			}			
+				for (var i:int = 0; i < whole; i++) 
+				{
+					print(s, Globals.CopiasSeguidas);
+				}
+			}
+			if(rest > 0)
+			{
+				print(s, rest);
+			}
 		}
-		
-		public function print(sheet1 : Sprite) : void
+		public function print(sheet1 : Sprite, copies : int) : void
 		{
+			var cont : Sprite = new Sprite();
+			sheet1.rotation = Globals.Rotation;
 			
 			var color:AdjustColor = new AdjustColor();
 			color.brightness = Globals.Brightness;
@@ -117,9 +123,15 @@ package
 			sheet1.filters = [new ColorMatrixFilter(color.CalculateFinalFlatArray())];
 			
 			var pj : PrintJob = new PrintJob();
+			//pj.copies = copies;
 			
 			//Si por config no pasan nada, dejo que use la config de impresora default
 			//if(Globals.NombreImpresora != "") pj.printer = Globals.NombreImpresora;
+			
+			cont.graphics.beginFill(0xffffff);
+			cont.graphics.drawRect(0,0,pj.pageWidth,pj.pageHeight);
+			cont.graphics.endFill();
+			
 			if(printers.length > 0)
 			{
 				if(printers[currentPrinter].isOn)
@@ -139,9 +151,12 @@ package
 			}
 			if(Globals.TamanioHoja != "") pj.selectPaperSize(PaperSize[Globals.TamanioHoja]);
 			
-			//			Globals.Loguear("Dimensiones impresora: " + pj.pageWidth + "x" + pj.pageHeight);
-			sheet1.width = pj.pageWidth;
-			sheet1.height = pj.pageHeight;
+			//Globals.Loguear("Dimensiones impresora: " + pj.pageWidth + "x" + pj.pageHeight);
+			sheet1.width = pj.pageWidth * Globals.ScaleX/100;
+			sheet1.height = pj.pageHeight * Globals.ScaleY/100;
+			cont.addChild(sheet1);
+			sheet1.x += (pj.pageWidth - (pj.pageWidth * Globals.ScaleX/100))/2;
+			sheet1.y += (pj.pageHeight - (pj.pageHeight * Globals.ScaleY/100))/2;
 			
 			var options : PrintJobOptions = new PrintJobOptions();
 			options.pixelsPerInch = Globals.PPI;
@@ -152,8 +167,11 @@ package
 			{
 				try 
 				{
-					pj.addPage(sheet1, null, options, 1);
-					pagesToPrint++;
+					for (var i:int = 0; i < copies; i++) 
+					{
+						pj.addPage(cont, null, options, 1);
+						pagesToPrint++;	
+					}					
 				}
 				catch(e:Error)
 				{}
@@ -188,7 +206,7 @@ package
 					return printers[currentPrinter].printerName;
 				}
 				currentPrinter++
-					currentPrinter %= printers.length;
+				currentPrinter %= printers.length;
 			}
 			return "";
 		}

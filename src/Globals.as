@@ -17,11 +17,15 @@ package
 		public static var Saturation : Number;
 		public static var Hue : Number;
 		public static var Printers : Vector.<String>;
+		public static var Rotation : Number;
+		public static var ScaleX : Number;
+		public static var ScaleY : Number;
 	
-		
+		public static var CopiasSeguidas : int;
 		public static var CalidadJPG : int;
 		public static var Port : int;
 		public static var Ip : String;
+		public static var id : String;
 		
 		private static var filtros : Dictionary;
 		private static var filtros_print : Dictionary;
@@ -69,9 +73,13 @@ package
 			//Printers = PrintJob.printers;
 			
 			//trace(XmlData.Names.Name.length());
-			
+			CopiasSeguidas = parseInt(XmlData.general.@copias_seguidas);
 			Port = parseInt(XmlData.general.@port);
 			Ip = String(XmlData.general.@ip);
+			id = String(XmlData.general.@bypassId);
+			ScaleX = Number(XmlData.printer.@scaleX);
+			ScaleY = Number(XmlData.printer.@scaleY);
+			Rotation = Number(XmlData.printer.@rotation);
 			TamanioHoja = String(XmlData.printer.@paper_size);
 			NombreImpresora = String(XmlData.printer.@name);
 			PPI = Number(XmlData.printer.@ppi);

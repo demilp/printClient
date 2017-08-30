@@ -8,7 +8,10 @@
 		contrast = "0"
 		saturation = "0"
 		hue = "0"
-		printerLoadType = "2"
+		printerLoadType = "0"
+		rotation = "0"
+		scaleX = "100"
+		scaleY = "100"
 		/>
 		<!-- 0 para levantar todas, 1 levantar las de "Names", 2 para filtrar por "Filter" -->
 	
@@ -21,7 +24,9 @@
 	<general
 		port = "9000"
 		ip = "127.0.0.1"
+		bypassId = "0"
 		calidad_jpg = "90"
+		copias_seguidas = "2"
 	/>
 </configs>
 <!-- Bypass Server identifier: "printer" -->
